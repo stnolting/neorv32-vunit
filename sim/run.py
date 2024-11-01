@@ -45,10 +45,7 @@ def _gen_vhdl_ls(vu):
     with open(parent / 'vhdl_ls.toml', "w") as f:
         for lib in libs:
             f.write(f"[libraries.{lib.name}]\n")
-            files = [str(file).replace('\\', '/') for file in lib._source_files
-                # Conflicts with *.default.vhd
-                if not any(exclude in file for exclude in ('neorv32_imem.simple.vhd', 'neorv32_imem.legacy.vhd', 'neorv32_dmem.legacy.vhd'))
-            ]
+            files = [str(file).replace('\\', '/') for file in lib._source_files]
             f.write(f"files = {json.dumps(files, indent=4)}\n")
 
 _gen_vhdl_ls(PRJ)
