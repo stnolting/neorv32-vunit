@@ -21,6 +21,7 @@ jobs:
       uses: docker://ghcr.io/stnolting/neorv32/sim
       with:
         args: >-
+          ls -al &&
           make -C neorv32/sw/example/processor_check
           clean_all
           USER_FLAGS+=-DUART0_SIM_MODE
