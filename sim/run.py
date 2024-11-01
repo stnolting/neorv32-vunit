@@ -24,7 +24,7 @@ ROOT = Path(__file__).parent
 NEORV32 = PRJ.add_library("neorv32")
 NEORV32.add_source_files([
     ROOT / "*.vhd",
-    ROOT / ".." / "rtl" / "**" / "*.vhd",
+    ROOT / ".." / "neorv32" / "rtl" / "**" / "*.vhd",
 ])
 
 NEORV32.test_bench("neorv32_vunit_tb").set_generic("ci_mode", args.ci_mode)
