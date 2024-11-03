@@ -39,8 +39,6 @@ architecture neorv32_vunit_tb_rtl of neorv32_vunit_tb is
   -- User Configuration ---------------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
   -- general --
-  constant int_imem_c              : boolean := false; -- true: use proc-internal IMEM, false: use external simulated IMEM (ext. mem A)
-  constant int_dmem_c              : boolean := false; -- true: use proc-internal DMEM, false: use external simulated DMEM (ext. mem B)
   constant imem_size_c             : natural := 32*1024; -- size in bytes of processor-internal IMEM / external mem A
   constant dmem_size_c             : natural := 8*1024; -- size in bytes of processor-internal DMEM / external mem B
   constant f_clock_c               : natural := 100000000; -- main clock in Hz
@@ -191,12 +189,15 @@ begin
   -- -------------------------------------------------------------------------------------------
   neorv32_top_inst: neorv32_top
   generic map (
-    -- General --
+    -- Processor Clocking --
     CLOCK_FREQUENCY       => f_clock_c,     -- clock frequency of clk_i in Hz
     CLOCK_GATING_EN       => true,          -- enable clock gating when in sleep mode
+    -- Identification --
     HART_ID               => x"00000000",   -- hardware thread ID
     JEDEC_ID              => "00000000000", -- vendor's JEDEC ID
-    INT_BOOTLOADER_EN     => false,         -- boot configuration: true = boot explicit bootloader; false = boot from int/ext (I)MEM
+    -- Boot Configuration --
+    BOOT_MODE_SELECT      => 1,             -- boot from custom boot address
+    BOOT_ADDR_CUSTOM      => x"00000000",   -- custom boot address
     -- On-Chip Debugger (OCD) --
     OCD_EN                => true,          -- implement on-chip debugger
     OCD_AUTHENTICATION    => true,          -- implement on-chip debugger authentication
@@ -236,11 +237,9 @@ begin
     HPM_NUM_CNTS          => 12,            -- number of implemented HPM counters (0..29)
     HPM_CNT_WIDTH         => 40,            -- total size of HPM counters (0..64)
     -- Internal Instruction memory --
-    MEM_INT_IMEM_EN       => int_imem_c ,   -- implement processor-internal instruction memory
-    MEM_INT_IMEM_SIZE     => imem_size_c,   -- size of processor-internal instruction memory in bytes
+    MEM_INT_IMEM_EN       => false,         -- no internal IMEM
     -- Internal Data memory --
-    MEM_INT_DMEM_EN       => int_dmem_c,    -- implement processor-internal data memory
-    MEM_INT_DMEM_SIZE     => dmem_size_c,   -- size of processor-internal data memory in bytes
+    MEM_INT_DMEM_EN       => false,         -- no internal DMEM
     -- Internal Cache memory --
     ICACHE_EN             => false,         -- implement instruction cache
     -- Internal Data Cache (dCACHE) --
@@ -453,104 +452,84 @@ begin
 
   -- Wishbone Memory A (simulated external IMEM) --------------------------------------------
   -- -------------------------------------------------------------------------------------------
-  generate_ext_imem:
-  if (int_imem_c = false) generate
-    ext_mem_a_access: process(clk_gen)
-      variable ext_ram_a : mem32_t(0 to ext_mem_a_size_c/4-1) := mem32_init_f(application_init_image, ext_mem_a_size_c/4); -- initialized, used to simulate external IMEM
-    begin
-      if rising_edge(clk_gen) then
-        -- control --
-        ext_mem_a.ack(0) <= wb_mem_a.cyc and wb_mem_a.stb; -- wishbone acknowledge
+  ext_mem_a_access: process(clk_gen)
+    variable ext_ram_a : mem32_t(0 to ext_mem_a_size_c/4-1) := mem32_init_f(application_init_image, ext_mem_a_size_c/4); -- initialized, used to simulate external IMEM
+  begin
+    if rising_edge(clk_gen) then
+      -- control --
+      ext_mem_a.ack(0) <= wb_mem_a.cyc and wb_mem_a.stb; -- wishbone acknowledge
 
-        -- write access --
-        if ((wb_mem_a.cyc and wb_mem_a.stb and wb_mem_a.we) = '1') then -- valid write access
-          for i in 0 to 3 loop
-            if (wb_mem_a.sel(i) = '1') then
-              ext_ram_a(to_integer(unsigned(wb_mem_a.addr(index_size_f(ext_mem_a_size_c/4)+1 downto 2))))(7+i*8 downto 0+i*8) := wb_mem_a.wdata(7+i*8 downto 0+i*8);
-            end if;
-          end loop; -- i
-        end if;
-
-        -- read access --
-        ext_mem_a.rdata(0) <= ext_ram_a(to_integer(unsigned(wb_mem_a.addr(index_size_f(ext_mem_a_size_c/4)+1 downto 2)))); -- word aligned
-        -- virtual read and ack latency --
-        if (ext_mem_a_latency_c > 1) then
-          for i in 1 to ext_mem_a_latency_c-1 loop
-            ext_mem_a.rdata(i) <= ext_mem_a.rdata(i-1);
-            ext_mem_a.ack(i)   <= ext_mem_a.ack(i-1) and wb_mem_a.cyc;
-          end loop;
-        end if;
-
-        -- bus output register --
-        wb_mem_a.err <= '0';
-        if (ext_mem_a.ack(ext_mem_a_latency_c-1) = '1') and (wb_mem_a.cyc = '1') then
-          wb_mem_a.rdata <= ext_mem_a.rdata(ext_mem_a_latency_c-1);
-          wb_mem_a.ack   <= '1';
-        else
-          wb_mem_a.rdata <= (others => '0');
-          wb_mem_a.ack   <= '0';
-        end if;
+      -- write access --
+      if ((wb_mem_a.cyc and wb_mem_a.stb and wb_mem_a.we) = '1') then -- valid write access
+        for i in 0 to 3 loop
+          if (wb_mem_a.sel(i) = '1') then
+            ext_ram_a(to_integer(unsigned(wb_mem_a.addr(index_size_f(ext_mem_a_size_c/4)+1 downto 2))))(7+i*8 downto 0+i*8) := wb_mem_a.wdata(7+i*8 downto 0+i*8);
+          end if;
+        end loop; -- i
       end if;
-    end process ext_mem_a_access;
-  end generate;
 
-  generate_ext_imem_false:
-  if (int_imem_c = true) generate
-    wb_mem_a.rdata <= (others => '0');
-    wb_mem_a.ack   <= '0';
-    wb_mem_a.err   <= '0';
-  end generate;
+      -- read access --
+      ext_mem_a.rdata(0) <= ext_ram_a(to_integer(unsigned(wb_mem_a.addr(index_size_f(ext_mem_a_size_c/4)+1 downto 2)))); -- word aligned
+      -- virtual read and ack latency --
+      if (ext_mem_a_latency_c > 1) then
+        for i in 1 to ext_mem_a_latency_c-1 loop
+          ext_mem_a.rdata(i) <= ext_mem_a.rdata(i-1);
+          ext_mem_a.ack(i)   <= ext_mem_a.ack(i-1) and wb_mem_a.cyc;
+        end loop;
+      end if;
+
+      -- bus output register --
+      wb_mem_a.err <= '0';
+      if (ext_mem_a.ack(ext_mem_a_latency_c-1) = '1') and (wb_mem_a.cyc = '1') then
+        wb_mem_a.rdata <= ext_mem_a.rdata(ext_mem_a_latency_c-1);
+        wb_mem_a.ack   <= '1';
+      else
+        wb_mem_a.rdata <= (others => '0');
+        wb_mem_a.ack   <= '0';
+      end if;
+    end if;
+  end process ext_mem_a_access;
 
 
   -- Wishbone Memory B (simulated external DMEM) --------------------------------------------
   -- -------------------------------------------------------------------------------------------
-  generate_ext_dmem:
-  if (int_dmem_c = false) generate
-    ext_mem_b_access: process(clk_gen)
-      variable ext_ram_b : mem32_t(0 to ext_mem_b_size_c/4-1) := (others => (others => '0')); -- zero, used to simulate external DMEM
-    begin
-      if rising_edge(clk_gen) then
-        -- control --
-        ext_mem_b.ack(0) <= wb_mem_b.cyc and wb_mem_b.stb; -- wishbone acknowledge
+  ext_mem_b_access: process(clk_gen)
+    variable ext_ram_b : mem32_t(0 to ext_mem_b_size_c/4-1) := (others => (others => '0')); -- zero, used to simulate external DMEM
+  begin
+    if rising_edge(clk_gen) then
+      -- control --
+      ext_mem_b.ack(0) <= wb_mem_b.cyc and wb_mem_b.stb; -- wishbone acknowledge
 
-        -- write access --
-        if ((wb_mem_b.cyc and wb_mem_b.stb and wb_mem_b.we) = '1') then -- valid write access
-          for i in 0 to 3 loop
-            if (wb_mem_b.sel(i) = '1') then
-              ext_ram_b(to_integer(unsigned(wb_mem_b.addr(index_size_f(ext_mem_b_size_c/4)+1 downto 2))))(7+i*8 downto 0+i*8) := wb_mem_b.wdata(7+i*8 downto 0+i*8);
-            end if;
-          end loop; -- i
-        end if;
-
-        -- read access --
-        ext_mem_b.rdata(0) <= ext_ram_b(to_integer(unsigned(wb_mem_b.addr(index_size_f(ext_mem_b_size_c/4)+1 downto 2)))); -- word aligned
-        -- virtual read and ack latency --
-        if (ext_mem_b_latency_c > 1) then
-          for i in 1 to ext_mem_b_latency_c-1 loop
-            ext_mem_b.rdata(i) <= ext_mem_b.rdata(i-1);
-            ext_mem_b.ack(i)   <= ext_mem_b.ack(i-1) and wb_mem_b.cyc;
-          end loop;
-        end if;
-
-        -- bus output register --
-        wb_mem_b.err <= '0';
-        if (ext_mem_b.ack(ext_mem_b_latency_c-1) = '1') and (wb_mem_b.cyc = '1') then
-          wb_mem_b.rdata <= ext_mem_b.rdata(ext_mem_b_latency_c-1);
-          wb_mem_b.ack   <= '1';
-        else
-          wb_mem_b.rdata <= (others => '0');
-          wb_mem_b.ack   <= '0';
-        end if;
+      -- write access --
+      if ((wb_mem_b.cyc and wb_mem_b.stb and wb_mem_b.we) = '1') then -- valid write access
+        for i in 0 to 3 loop
+          if (wb_mem_b.sel(i) = '1') then
+            ext_ram_b(to_integer(unsigned(wb_mem_b.addr(index_size_f(ext_mem_b_size_c/4)+1 downto 2))))(7+i*8 downto 0+i*8) := wb_mem_b.wdata(7+i*8 downto 0+i*8);
+          end if;
+        end loop; -- i
       end if;
-    end process ext_mem_b_access;
-  end generate;
 
-  generate_ext_dmem_false:
-  if (int_dmem_c = true) generate
-    wb_mem_b.rdata <= (others => '0');
-    wb_mem_b.ack   <= '0';
-    wb_mem_b.err   <= '0';
-  end generate;
+      -- read access --
+      ext_mem_b.rdata(0) <= ext_ram_b(to_integer(unsigned(wb_mem_b.addr(index_size_f(ext_mem_b_size_c/4)+1 downto 2)))); -- word aligned
+      -- virtual read and ack latency --
+      if (ext_mem_b_latency_c > 1) then
+        for i in 1 to ext_mem_b_latency_c-1 loop
+          ext_mem_b.rdata(i) <= ext_mem_b.rdata(i-1);
+          ext_mem_b.ack(i)   <= ext_mem_b.ack(i-1) and wb_mem_b.cyc;
+        end loop;
+      end if;
+
+      -- bus output register --
+      wb_mem_b.err <= '0';
+      if (ext_mem_b.ack(ext_mem_b_latency_c-1) = '1') and (wb_mem_b.cyc = '1') then
+        wb_mem_b.rdata <= ext_mem_b.rdata(ext_mem_b_latency_c-1);
+        wb_mem_b.ack   <= '1';
+      else
+        wb_mem_b.rdata <= (others => '0');
+        wb_mem_b.ack   <= '0';
+      end if;
+    end if;
+  end process ext_mem_b_access;
 
 
   -- Wishbone Memory C (simulated external IO) ----------------------------------------------
