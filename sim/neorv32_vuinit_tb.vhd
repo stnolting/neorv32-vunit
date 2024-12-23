@@ -191,7 +191,6 @@ begin
   generic map (
     -- Processor Clocking --
     CLOCK_FREQUENCY       => f_clock_c,     -- clock frequency of clk_i in Hz
-    CLOCK_GATING_EN       => true,          -- enable clock gating when in sleep mode
     -- Identification --
     HART_ID               => x"00000000",   -- hardware thread ID
     JEDEC_ID              => "00000000000", -- vendor's JEDEC ID
@@ -225,9 +224,10 @@ begin
     RISCV_ISA_Zmmul       => false,         -- implement multiply-only M sub-extension?
     RISCV_ISA_Zxcfu       => true,          -- implement custom (instr.) functions unit?
     -- Extension Options --
-    FAST_MUL_EN           => false,         -- use DSPs for M extension's multiplier
-    FAST_SHIFT_EN         => false,         -- use barrel shifter for shift operations
-    REGFILE_HW_RST        => true,          -- full hardware reset
+    CPU_CLOCK_GATING_EN   => false,         -- enable clock gating when in sleep mode
+    CPU_FAST_MUL_EN       => false,         -- use DSPs for M extension's multiplier
+    CPU_FAST_SHIFT_EN     => false,         -- use barrel shifter for shift operations
+    CPU_RF_HW_RST_EN      => true,          -- full hardware reset
     -- Physical Memory Protection (PMP) --
     PMP_NUM_REGIONS       => 5,             -- number of regions (0..16)
     PMP_MIN_GRANULARITY   => 4,             -- minimal region granularity in bytes, has to be a power of 2, min 4 bytes
