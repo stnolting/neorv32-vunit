@@ -78,7 +78,7 @@ architecture neorv32_vunit_tb_rtl of neorv32_vunit_tb is
   signal gpio : std_ulogic_vector(63 downto 0);
 
   -- twi --
-  signal twi_scl, twi_sda : std_logic;
+  signal i2c_scl, i2c_sda : std_logic;
   signal twi_scl_i, twi_scl_o, twi_sda_i, twi_sda_o : std_ulogic;
   signal twd_scl_i, twd_scl_o, twd_sda_i, twd_sda_o : std_ulogic;
 
@@ -382,10 +382,10 @@ begin
   );
 
   -- TWI tri-state driver --
-  twi_sda   <= '0' when (twi_sda_o = '0') else 'Z'; -- module can only pull the line low actively
-  twi_scl   <= '0' when (twi_scl_o = '0') else 'Z';
-  twi_sda_i <= std_ulogic(twi_sda);
-  twi_scl_i <= std_ulogic(twi_scl);
+  i2c_sda   <= '0' when (twi_sda_o = '0') else 'Z'; -- module can only pull the line low actively
+  i2c_scl   <= '0' when (twi_scl_o = '0') else 'Z';
+  twi_sda_i <= std_ulogic(i2c_sda);
+  twi_scl_i <= std_ulogic(i2c_scl);
 
   i2c_sda   <= '0' when (twd_sda_o = '0') else 'Z';
   i2c_scl   <= '0' when (twd_scl_o = '0') else 'Z';
@@ -393,8 +393,8 @@ begin
   twd_scl_i <= std_ulogic(i2c_scl); -- sense input
 
   -- TWI termination (pull-ups) --
-  twi_scl <= 'H';
-  twi_sda <= 'H';
+  i2c_sda <= 'H';
+  i2c_scl <= 'H';
 
   -- 1-Wire tri-state driver --
   onewire   <= '0' when (onewire_o = '0') else 'Z'; -- module can only pull the line low actively
