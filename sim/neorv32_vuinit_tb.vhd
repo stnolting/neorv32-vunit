@@ -193,7 +193,6 @@ begin
     -- Processor Clocking --
     CLOCK_FREQUENCY       => f_clock_c,
     -- Identification --
-    HART_ID               => x"00000000",
     JEDEC_ID              => "00000000000",
     -- Boot Configuration --
     BOOT_MODE_SELECT      => 1,
@@ -261,7 +260,7 @@ begin
     XIRQ_NUM_CH           => 32,
     -- Processor peripherals --
     IO_GPIO_NUM           => 64,
-    IO_MTIME_EN           => true,
+    IO_CLINT_EN           => true,
     IO_UART0_EN           => true,
     IO_UART0_RX_FIFO      => 32,
     IO_UART0_TX_FIFO      => 32,
