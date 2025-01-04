@@ -1,5 +1,7 @@
 # Testing the NEORV32 with VUnit
 
+[![neorv32-vunit](https://img.shields.io/github/actions/workflow/status/stnolting/neorv32-vunit/vunit.yml?branch=main&longCache=true&style=flat-square&label=neorv32-vunit&logo=Github%20Actions&logoColor=fff)](https://github.com/stnolting/neorv32-vunit/actions/workflows/vunit.yml)
+
 [VUnit](https://vunit.github.io) is a powerful open-source unit testing framework for VHDL/SystemVerilog.
 It allows continuous and automated testing of HDL code by complementing traditional testing methodologies.
 The motto of VUnit is _"testing early and often"_ through automation.

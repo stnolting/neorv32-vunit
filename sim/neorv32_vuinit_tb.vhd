@@ -3,7 +3,7 @@
 -- -------------------------------------------------------------------------------- --
 -- The NEORV32 RISC-V Processor - https://github.com/stnolting/neorv32              --
 -- Copyright (c) NEORV32 contributors.                                              --
--- Copyright (c) 2020 - 2024 Stephan Nolting. All rights reserved.                  --
+-- Copyright (c) 2020 - 2025 Stephan Nolting. All rights reserved.                  --
 -- Licensed under the BSD-3-Clause license, see LICENSE for details.                --
 -- SPDX-License-Identifier: BSD-3-Clause                                            --
 -- ================================================================================ --
@@ -157,7 +157,7 @@ begin
     if ci_mode then
       -- No need to send the full expectation in one big chunk
       check_uart(net, uart1_rx_handle, nul & nul);
-      check_uart(net, uart1_rx_handle, "0/56" & cr & lf);
+      check_uart(net, uart1_rx_handle, "0/57" & cr & lf);
     end if;
 
     -- Wait until all expected data has been received
@@ -205,7 +205,7 @@ begin
     RISCV_ISA_E           => false,
     RISCV_ISA_M           => true,
     RISCV_ISA_U           => true,
-    RISCV_ISA_Zalrsc      => true,
+    RISCV_ISA_Zaamo       => true,
     RISCV_ISA_Zba         => true,
     RISCV_ISA_Zbb         => true,
     RISCV_ISA_Zbkb        => true,
