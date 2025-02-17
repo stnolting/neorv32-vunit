@@ -71,8 +71,8 @@ architecture neorv32_vunit_tb_rtl of neorv32_vunit_tb is
   signal clk_gen, rst_gen : std_ulogic := '0';
 
   -- uart --
-  signal uart0_txd, uart1_txd : std_ulogic;
-  signal uart0_cts, uart1_cts : std_ulogic;
+  signal uart0_txd,  uart1_txd  : std_ulogic;
+  signal uart0_ctsn, uart1_ctsn : std_ulogic;
 
   -- gpio --
   signal gpio : std_ulogic_vector(31 downto 0);
@@ -249,11 +249,6 @@ begin
     XBUS_CACHE_EN         => true,
     XBUS_CACHE_NUM_BLOCKS => 64,
     XBUS_CACHE_BLOCK_SIZE => 32,
-    -- Execute in-place module (XIP) --
-    XIP_EN                => true,
-    XIP_CACHE_EN          => true,
-    XIP_CACHE_NUM_BLOCKS  => 4,
-    XIP_CACHE_BLOCK_SIZE  => 256,
     -- Processor peripherals --
     IO_GPIO_NUM           => 32,
     IO_CLINT_EN           => true,
@@ -321,24 +316,19 @@ begin
     slink_tx_val_o => slink_val,
     slink_tx_lst_o => slink_lst,
     slink_tx_rdy_i => slink_rdy,
-    -- XIP (execute in place via SPI) signals (available if XIP_EN = true) --
-    xip_csn_o      => open,
-    xip_clk_o      => open,
-    xip_dat_i      => '1',
-    xip_dat_o      => open,
     -- GPIO (available if IO_GPIO_NUM > 0) --
     gpio_o         => gpio,
     gpio_i         => gpio,
     -- primary UART0 (available if IO_UART0_EN = true) --
     uart0_txd_o    => uart0_txd,
     uart0_rxd_i    => uart0_txd,
-    uart0_rts_o    => uart1_cts,
-    uart0_cts_i    => uart0_cts,
+    uart0_rtsn_o   => uart1_ctsn,
+    uart0_ctsn_i   => uart0_ctsn,
     -- secondary UART1 (available if IO_UART1_EN = true) --
     uart1_txd_o    => uart1_txd,
     uart1_rxd_i    => uart1_txd,
-    uart1_rts_o    => uart0_cts,
-    uart1_cts_i    => uart1_cts,
+    uart1_rtsn_o   => uart0_ctsn,
+    uart1_ctsn_i   => uart1_ctsn,
     -- SPI (available if IO_SPI_EN = true) --
     spi_clk_o      => spi_clk,
     spi_dat_o      => spi_do,
