@@ -30,7 +30,6 @@ jobs:
           USER_FLAGS+=-DSUPPRESS_OPTIONAL_UART_PRINT
           USER_FLAGS+=-flto
           MARCH=rv32imac_zicsr_zifencei
-          RISCV_PREFIX=riscv32-unknown-elf-
           info
           all
 
