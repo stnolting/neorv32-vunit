@@ -222,7 +222,6 @@ begin
     RISCV_ISA_Zmmul       => false,
     RISCV_ISA_Zxcfu       => true,
     -- Extension Options --
-    CPU_CLOCK_GATING_EN   => false,
     CPU_FAST_MUL_EN       => false,
     CPU_FAST_SHIFT_EN     => false,
     CPU_RF_HW_RST_EN      => true,
