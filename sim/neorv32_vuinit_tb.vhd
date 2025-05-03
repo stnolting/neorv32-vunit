@@ -237,17 +237,13 @@ begin
     MEM_INT_IMEM_EN       => false,
     -- Internal Data memory --
     MEM_INT_DMEM_EN       => false,
-    -- Internal Cache memory --
+    -- CPU Caches --
     ICACHE_EN             => false,
-    -- Internal Data Cache (dCACHE) --
     DCACHE_EN             => false,
     -- External bus interface --
     XBUS_EN               => true,
     XBUS_TIMEOUT          => 256,
     XBUS_REGSTAGE_EN      => false,
-    XBUS_CACHE_EN         => true,
-    XBUS_CACHE_NUM_BLOCKS => 64,
-    XBUS_CACHE_BLOCK_SIZE => 32,
     -- Processor peripherals --
     IO_GPIO_NUM           => 32,
     IO_CLINT_EN           => true,
