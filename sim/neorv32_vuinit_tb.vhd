@@ -234,9 +234,9 @@ begin
     HPM_NUM_CNTS          => 12,
     HPM_CNT_WIDTH         => 40,
     -- Internal Instruction memory --
-    MEM_INT_IMEM_EN       => false,
+    IMEM_EN               => false,
     -- Internal Data memory --
-    MEM_INT_DMEM_EN       => false,
+    DMEM_EN               => false,
     -- CPU Caches --
     ICACHE_EN             => false,
     DCACHE_EN             => false,
@@ -275,8 +275,7 @@ begin
     IO_DMA_EN             => true,
     IO_SLINK_EN           => true,
     IO_SLINK_RX_FIFO      => 4,
-    IO_SLINK_TX_FIFO      => 4,
-    IO_CRC_EN             => true
+    IO_SLINK_TX_FIFO      => 4
   )
   port map (
     -- Global control --
