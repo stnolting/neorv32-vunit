@@ -234,7 +234,7 @@ begin
     HPM_NUM_CNTS          => 12,
     HPM_CNT_WIDTH         => 40,
     -- Internal Instruction memory --
-    DMEM_SIZE             => false,
+    IMEM_EN               => false,
     -- Internal Data memory --
     DMEM_EN               => false,
     -- CPU Caches --
